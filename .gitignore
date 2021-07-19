@@ -20,6 +20,7 @@ parts/
 sdist/
 var/
 wheels/
+lid_data/
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
@@ -54,6 +55,8 @@ coverage.xml
 # Translations
 *.mo
 *.pot
+
+*.zip
 
 # Django stuff:
 *.log
