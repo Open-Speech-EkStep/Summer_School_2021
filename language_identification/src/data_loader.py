@@ -12,6 +12,7 @@ class LanguageIdentificationDataset(Dataset):
         self.feature_extraction = FEATURE_EXTRACTION
         self.crop_duration = CROP_DURATION
         self.sample_rate = SAMPLE_RATE
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
     def __len__(self):
@@ -58,19 +59,21 @@ class LanguageIdentificationDataset(Dataset):
         language_label = self.get_audio_language_label(idx)
 
         audio_signal, _ = torchaudio.load(audio_path)
+        audio_signal = audio_signal.to(self.device)
+        language_label = torch.tensor(int(language_label)).to(self.device)
         audio_signal = self.crop_or_pad_audio(audio_signal)
         audio_signal = self.audio_transform(audio_signal)
 
         return audio_signal, language_label
-        
+
 
 if __name__ == "__main__":
     lid = LanguageIdentificationDataset()
-
     s, l = lid[0]
-    print(s)
-    print(s.shape)
 
+    print(s,l)
+    print(type(s))
+    print(type(l))
 
 
 
