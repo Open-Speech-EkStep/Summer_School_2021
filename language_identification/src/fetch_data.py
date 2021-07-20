@@ -6,6 +6,7 @@ import shutil
 import os
 from glob import glob
 from tqdm import tqdm
+from sklearn.preprocessing import LabelEncoder
 
 
 def audio_duration(wav_path):
@@ -30,11 +31,16 @@ def explore_audio_data():
 
     audio_data = pd.DataFrame({'path': audio_files, 'duration': audio_durations})
 
-    audio_data['language'] = audio_data['path'].apply(lambda x: x.split('/')[2])
+    label_encoder = LabelEncoder()
+    
 
+    audio_data['language'] = audio_data['path'].apply(lambda x: x.split('/')[2])
+    audio_data['label'] = label_encoder.fit_transform(audio_data['language'])
+    
     print(audio_data.groupby(by=['language'])['duration'].sum() / 3600)
 
     audio_data.to_csv('data/audio_data.csv', index=False)
+
 
 if __name__ == "__main__":
     download_data('https://storage.googleapis.com/vakyaansh-open-models/lid_data/lid_data.zip')
