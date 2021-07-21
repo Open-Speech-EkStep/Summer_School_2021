@@ -22,6 +22,7 @@ var/
 wheels/
 lid_data/
 data/
+checkpoints/
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/

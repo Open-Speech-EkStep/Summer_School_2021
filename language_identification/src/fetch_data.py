@@ -7,6 +7,7 @@ import os
 from glob import glob
 from tqdm import tqdm
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 
 
 def audio_duration(wav_path):
@@ -40,6 +41,15 @@ def explore_audio_data():
     print(audio_data.groupby(by=['language'])['duration'].sum() / 3600)
 
     audio_data.to_csv('data/audio_data.csv', index=False)
+
+    X_train, X_test, y_train, y_test = train_test_split(audio_data['path'], audio_data['label'],
+                                                        test_size=0.20, random_state=42, stratify=audio_data['label'])
+    
+    train_data = pd.DataFrame({'path': X_train, 'label': y_train})
+    valid_data = pd.DataFrame({'path': X_test, 'label': y_test})
+
+    train_data.to_csv('data/train.csv', index=False)
+    valid_data.to_csv('data/valid.csv', index=False)
 
 
 if __name__ == "__main__":

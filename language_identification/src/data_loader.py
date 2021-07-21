@@ -2,16 +2,16 @@ from torch.utils.data import Dataset
 import pandas as pd
 import torchaudio
 import torch
-from parameters import SAMPLE_RATE, FEATURE_EXTRACTION, DATA_FILE, CROP_DURATION
+import parameters
 
 class LanguageIdentificationDataset(Dataset):
 
-    def __init__(self):
+    def __init__(self, data_file):
 
-        self.data_file = pd.read_csv(DATA_FILE)
-        self.feature_extraction = FEATURE_EXTRACTION
-        self.crop_duration = CROP_DURATION
-        self.sample_rate = SAMPLE_RATE
+        self.data_file = pd.read_csv(data_file)
+        self.feature_extraction = parameters.FEATURE_EXTRACTION
+        self.crop_duration = parameters.CROP_DURATION
+        self.sample_rate = parameters.SAMPLE_RATE
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
@@ -59,8 +59,6 @@ class LanguageIdentificationDataset(Dataset):
         language_label = self.get_audio_language_label(idx)
 
         audio_signal, _ = torchaudio.load(audio_path)
-        audio_signal = audio_signal.to(self.device)
-        language_label = torch.tensor(int(language_label)).to(self.device)
         audio_signal = self.crop_or_pad_audio(audio_signal)
         audio_signal = self.audio_transform(audio_signal)
 
@@ -68,14 +66,9 @@ class LanguageIdentificationDataset(Dataset):
 
 
 if __name__ == "__main__":
-    lid = LanguageIdentificationDataset()
+    lid = LanguageIdentificationDataset(parameters.TRAIN_DATA_FILE)
     s, l = lid[0]
 
     print(s,l)
-    print(type(s))
+    print(s.shape)
     print(type(l))
-
-
-
-
-    
