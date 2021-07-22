@@ -1,74 +1,22 @@
-from torch.utils.data import Dataset
-import pandas as pd
-import torchaudio
-import torch
-import parameters
+import numpy as np
 
-class LanguageIdentificationDataset(Dataset):
+import utils
 
-    def __init__(self, data_file):
+class SpeechDataGenerator:
 
-        self.data_file = pd.read_csv(data_file)
-        self.feature_extraction = parameters.FEATURE_EXTRACTION
-        self.crop_duration = parameters.CROP_DURATION
-        self.sample_rate = parameters.SAMPLE_RATE
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
+    def __init__(self, manifest, mode):
+        self.mode = mode
+        self.audio_links = [line.rstrip('\n').split(',')[0] for line in open(manifest)]
+        self.labels = [int(line.rstrip('\n').split(',')[1]) for line in open(manifest)]
 
     def __len__(self):
-        return len(self.data_file)
-
-    def get_audio_path(self, idx):
-        return self.data_file['path'][idx]
-    
-    def get_audio_language_label(self, idx):
-        return self.data_file['label'][idx]
-    
-    def audio_transform(self, raw_audio):
-
-        if self.feature_extraction == 'raw audio':
-            return raw_audio
-
-        elif self.feature_extraction == 'mel spectrogram':
-            return torchaudio.transforms.MelSpectrogram(
-                sample_rate=self.sample_rate,
-                n_fft=1024,
-                hop_length=512,
-                n_mels=64
-            )(raw_audio)
-
-        else:
-            print("Incorrect feature extraction method")
-
-    
-    def crop_or_pad_audio(self, raw_audio):
-
-        num_frames = self.crop_duration * self.sample_rate
-
-        if raw_audio.shape[1] >= num_frames:
-            raw_audio = raw_audio[:, :num_frames]
-            return raw_audio
-
-        else:
-            padding_dimension = (0, num_frames - raw_audio.shape[1])
-            return torch.nn.functional.pad(raw_audio, padding_dimension)
-
+        return len(self.audio_links)
 
     def __getitem__(self, idx):
-        audio_path = self.get_audio_path(idx)
-        language_label = self.get_audio_language_label(idx)
+        audio_link = self.audio_links[idx]
+        class_id = self.labels[idx]
+        spec = utils.load_data(audio_link, mode=self.mode)[np.newaxis, ...]
+        feats = np.asarray(spec)
+        label_arr = np.asarray(class_id)
 
-        audio_signal, _ = torchaudio.load(audio_path)
-        audio_signal = self.crop_or_pad_audio(audio_signal)
-        audio_signal = self.audio_transform(audio_signal)
-
-        return audio_signal, language_label
-
-
-if __name__ == "__main__":
-    lid = LanguageIdentificationDataset(parameters.TRAIN_DATA_FILE)
-    s, l = lid[0]
-
-    print(s,l)
-    print(s.shape)
-    print(type(l))
+        return feats, label_arr
