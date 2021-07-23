@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
+import wandb
 from data_loader import SpeechDataGenerator
 
 def create_output_dirs(checkpoint_path):
@@ -37,13 +37,6 @@ def load_data_loaders(train_manifest, valid_manifest, batch_size):
         'test': test_loader,
     }
     return loaders
-
-
-def show_model_parameters(model):
-    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
-    params = sum([np.prod(p.size()) for p in model_parameters])
-    print("Total paramaeters: ", sum([np.prod(p.size()) for p in model.parameters()]), "\nTrainable parameters: ",
-          params)
 
 
 def save_ckp(state, model, valid_loss, valid_loss_min, checkpoint_path, best_model_path, final_model_path,
@@ -90,6 +83,8 @@ def train(start_epochs, n_epochs, device, valid_loss_min_input, loaders, model, 
     # initialize tracker for minimum validation loss
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=1e-1, patience=1, verbose=True)
     valid_loss_min = valid_loss_min_input
+
+    wandb.watch(model)
 
     # create checkpoints
     path = checkpoint_path
@@ -142,7 +137,6 @@ def train(start_epochs, n_epochs, device, valid_loss_min_input, loaders, model, 
             temp_target = [actual.item() for actual in target]
 
             train_loss = train_loss + ((1 / (batch_idx + 1)) * (loss.data - train_loss))
-
             train_predict = train_predict + temp_predict
             train_target = train_target + temp_target
 
@@ -183,6 +177,11 @@ def train(start_epochs, n_epochs, device, valid_loss_min_input, loaders, model, 
                 valid_loss,
                 valid_acc
             ))
+        wandb.log({'epoch': epoch,
+                'train loss': train_loss,
+                'valid loss': valid_loss,
+                'train accuracy': train_acc,
+                'valid_accuracy': valid_acc})
 
         # create checkpoint variable and add important data
         checkpoint = {

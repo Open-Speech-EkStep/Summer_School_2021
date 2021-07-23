@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch
 import numpy as np 
+import wandb
 
 from model import get_model
 from training_utils import *
@@ -30,12 +31,23 @@ loaders = load_data_loaders(train_manifest, valid_manifest, batch_size)
 # Load Model
 model = get_model(device, num_classes, pretrained=False)
 
-# Display model parameters
-show_model_parameters(model)
-
 # Set model hyperparameters
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss()
+
+
+
+config = {
+  "model": "Resnet18",
+  "learning_rate": learning_rate,
+  "batch_size": batch_size,
+  'num_classes': num_classes,
+  'num_epochs': num_epochs,
+  'learning_rate': learning_rate
+}
+
+wandb.init(project="test", config=config)
+wandb.watch(model)
 
 # start model trainning
 trained_model = train(1, num_epochs, device, np.Inf, loaders, model, optimizer, criterion, use_cuda, checkpoint_path,
