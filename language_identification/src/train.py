@@ -3,7 +3,6 @@ import torch.optim as optim
 import torch
 import numpy as np 
 import wandb
-from cnn import CNNNetwork
 
 from model import get_model
 from training_utils import *
