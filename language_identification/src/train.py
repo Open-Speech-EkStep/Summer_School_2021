@@ -3,6 +3,7 @@ import torch.optim as optim
 import torch
 import numpy as np 
 import wandb
+from cnn import CNNNetwork
 
 from model import get_model
 from training_utils import *
@@ -30,7 +31,6 @@ loaders = load_data_loaders(train_manifest, valid_manifest, batch_size)
 
 # Load Model
 model = get_model(device, num_classes, pretrained=False)
-
 # Set model hyperparameters
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss()

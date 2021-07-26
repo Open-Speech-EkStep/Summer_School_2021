@@ -4,7 +4,7 @@ import shutil
 import numpy as np
 import torch
 import yaml
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score, classification_report
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -26,8 +26,8 @@ def load_yaml_file(path):
 
 # Load Data
 def load_data_loaders(train_manifest, valid_manifest, batch_size):
-    train_data = SpeechDataGenerator(manifest=train_manifest, mode='train')
-    test_data = SpeechDataGenerator(manifest=valid_manifest, mode='train')
+    train_data = SpeechDataGenerator(manifest=train_manifest)
+    test_data = SpeechDataGenerator(manifest=valid_manifest)
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True, num_workers=os.cpu_count())
     test_loader = DataLoader(dataset=test_data, batch_size=batch_size, shuffle=True, num_workers=os.cpu_count())
@@ -167,7 +167,9 @@ def train(start_epochs, n_epochs, device, valid_loss_min_input, loaders, model, 
         valid_loss = valid_loss / len(loaders['test'])
         train_acc = accuracy_score(train_target, train_predict)
         valid_acc = accuracy_score(valid_target, valid_predict)
-
+        valid_f1_score = f1_score(valid_target, valid_predict, average='macro')
+        print("Classification Report: {}".format(classification_report(valid_target, valid_predict, output_dict=False,
+                                                                   labels=np.unique(valid_predict))))
         # print training/validation statistics
         print(
             'Epoch: {} \tTraining Loss: {:.10f} \tTraining Accuracy: {:.6f} \tValidation Loss: {:.10f} \tValidation  Accuracy: {:.6f} '.format(
@@ -181,7 +183,8 @@ def train(start_epochs, n_epochs, device, valid_loss_min_input, loaders, model, 
                 'train loss': train_loss,
                 'valid loss': valid_loss,
                 'train accuracy': train_acc,
-                'valid_accuracy': valid_acc})
+                'valid_accuracy': valid_acc,
+                'valid f1-score': valid_f1_score})
 
         # create checkpoint variable and add important data
         checkpoint = {

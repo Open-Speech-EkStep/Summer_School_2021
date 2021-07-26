@@ -48,8 +48,8 @@ def explore_audio_data():
     train_data = pd.DataFrame({'path': X_train, 'label': y_train})
     valid_data = pd.DataFrame({'path': X_test, 'label': y_test})
 
-    train_data.to_csv('data/train.csv', index=False)
-    valid_data.to_csv('data/valid.csv', index=False)
+    train_data.to_csv('data/train_data.csv', index=False, header=False)
+    valid_data.to_csv('data/valid_data.csv', index=False, header=False)
 
 
 if __name__ == "__main__":

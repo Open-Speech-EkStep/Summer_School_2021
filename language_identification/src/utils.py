@@ -19,20 +19,17 @@ def spectogram_from_wav(wav, hop_length, win_length, n_fft=512):
     return linear.T
 
 
-def load_data(filepath, sr=16000, min_dur_sec=5, win_length=400, hop_length=160, n_mels=40, spec_len=400, mode='train'):
+def load_data(filepath, sr=16000, min_dur_sec=5, win_length=400, hop_length=160, n_mels=40, spec_len=400):
     audio_data = load_wav(filepath, sr=sr, min_dur_sec=min_dur_sec)
     linear_spect = spectogram_from_wav(audio_data, hop_length, win_length, n_fft=512)
     mag, _ = librosa.magphase(linear_spect)
     mag = np.log1p(mag)
     mag_T = mag.T
 
-    if mode == 'train':
-        randtime = np.random.randint(0, mag_T.shape[1] - spec_len)
-        spec_mag = mag_T[:, randtime:randtime + spec_len]
-    else:
-        np.random.seed(0)
-        randtime = np.random.randint(0, mag_T.shape[1] - spec_len)
-        spec_mag = mag_T[:, randtime:randtime + spec_len]
+
+    randtime = np.random.randint(0, mag_T.shape[1] - spec_len)
+    spec_mag = mag_T[:, randtime:randtime + spec_len]
+
 
     mu = np.mean(spec_mag, 0, keepdims=True)
     std = np.std(spec_mag, 0, keepdims=True)
